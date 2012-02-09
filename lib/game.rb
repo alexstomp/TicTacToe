@@ -14,8 +14,14 @@ class Game
 
   def move(space)
     if valid_move?(space)
-      value = ((@turn % 2 == 0) ? "O" : "X")
-      @board.move(space, value)
+      if @turn % 2 == 0
+        value = "O"
+        player = 2
+      else
+        value = "X"
+        player = 1
+      end
+        @board.move(space, value)
       @turn += 1
     else
       return :invalid_move
@@ -28,6 +34,10 @@ class Game
 
   def get_board
     @board.board
+  end
+
+  def display_board
+    Narrator.display_board(@board)
   end
 
   def valid_move?(space)
@@ -47,6 +57,17 @@ class Game
       player_up.get_move(@board)
     else
       player_up.get_move
+    end
+  end
+
+  def end_result
+    state = @board.game_state
+    if state == :p1_win
+      @players[0].winner
+    elsif state == :p2_win
+      @players[1].winner
+    else
+      Narrator.draw
     end
   end
 
