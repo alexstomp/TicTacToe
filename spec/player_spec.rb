@@ -68,6 +68,7 @@ describe Computer do
     board.move(2, "X")
     board.move(3, "O")
     board.move(7, "X")
+    board.move(4, "O")
     player.get_move(board).should == 5
   end
 
@@ -120,13 +121,6 @@ class MockComputer < MockPlayer
     board.game_state
     #take ^^ out for actual class
 
-    #BASECASE = FINISH GAME -- LAST SPOT
-    if board.open_spaces.length == 1
-      board.board.each_with_index do |value, index|
-        return index if value == " "
-      end
-    end
-
     if @turn == 1
       my_board = board.p1_board.to_set
       opponent_board = board.p2_board.to_set
@@ -135,6 +129,13 @@ class MockComputer < MockPlayer
       my_board = board.p2_board.to_set
       oppent_board = board.p1_board.to_set
       opponent_value = "X"
+    end
+
+    #BASECASE = FINISH GAME -- LAST SPOT
+    if board.open_spaces.length == 1
+      board.board.each_with_index do |value, index|
+        return index if value == " "
+      end
     end
 
     #FINISHING MOVE
