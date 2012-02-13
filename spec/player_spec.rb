@@ -151,6 +151,8 @@ class MockComputer < MockPlayer
     # hash to store value for every open_space
     move_values = {}
 
+    puts board.open_spaces
+
     #STORE VALUES OF MOVES INTO HASH
     board.open_spaces.each do |open_space|
       move_value = generate_move_value(open_space, board)
@@ -158,6 +160,7 @@ class MockComputer < MockPlayer
     end
 
     puts move_values
+
     pick_value, pick = 0, 0
     #PICK RIGHT MOVE FROM THE HASH
     # ~working~
@@ -170,7 +173,8 @@ class MockComputer < MockPlayer
   end
 
   def generate_move_value(space, board)
-    gen_board, move_value = board, 0
+    gen_board = board
+    move_value = 0
 
     if gen_board.p1_board.size == gen_board.p2_board.size
       value = "X" # P1
@@ -179,9 +183,7 @@ class MockComputer < MockPlayer
     end
 
     gen_board.open_spaces.each do |next_move|
-
       gen_board.move(next_move,value)
-
       if gen_board.game_state == :p1_win and @turn == 1
         move_value = move_value + 1
       elsif gen_board.game_state == :p2_win and @turn == 2
@@ -191,11 +193,8 @@ class MockComputer < MockPlayer
       else
         move_value = move_value - 1
       end
-
     end
-
-    return move_value
-
+    move_value
   end
 
 end
