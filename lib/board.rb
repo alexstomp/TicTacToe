@@ -33,6 +33,11 @@ class Board
   def move(space, value)
     @open_spaces.delete(space)
     @board[space] = value
+    if value == "X"
+      @p1_board << value unless @p1_board.include?(value)
+    else
+      @p2_board << value unless @p2_board.include?(value)
+    end
   end
 
   def game_state
@@ -46,15 +51,12 @@ class Board
       end
     end
 
-  # puts "P1 BOARD: " + @p1_board.to_s
-  # puts "P2 BOARD: " + @p2_board.to_s
-
     @winning_sets.each do |item|
       return :p1_win if item.subset? @p1_board.to_set
       return :p2_win if item.subset? @p2_board.to_set
     end
 
-    if @p1_board.size + @p2_board.size == @board.size
+    if @p1_board.size + @p2_board.size >= @board.size
       return :draw
     else
       return :incomplete

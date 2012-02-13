@@ -1,5 +1,5 @@
-class Game 
-  
+class Game
+
   attr_reader :board, :players, :turn
 
   def initialize(size, player1=nil, player2=nil)

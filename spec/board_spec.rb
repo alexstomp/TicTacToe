@@ -1,10 +1,10 @@
 require 'board'
 
 describe Board do
-  
+
   it "creates a correctly sized array" do
     board = Board.new(3)
-    board.board.should == [" "," "," "," "," "," "," "," "," "]    
+    board.board.should == [" "," "," "," "," "," "," "," "," "]
   end
 
   it "checks that specific space is valid move" do
@@ -12,7 +12,7 @@ describe Board do
     board.board[4] = "X"
 
     board.valid_move?(0).should == true
-    board.valid_move?(4).should_not == true 
+    board.valid_move?(4).should_not == true
   end
 
   it "fills in a space with player_value" do
@@ -21,7 +21,7 @@ describe Board do
 
     board.board.should == [" ","X"," "," "," "," "," "," "," "]
   end
-  
+
   it "detects a win" do
     board = Board.new(3)
     board.move(0, "X")
@@ -56,7 +56,7 @@ describe Board do
     board.move(7, "X")
     board.move(3, "O")
     board.move(5, "X")
-    
+
     board.game_state.should == :draw
   end
 
