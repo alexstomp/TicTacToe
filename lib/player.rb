@@ -30,7 +30,6 @@ class Computer < Player
   def initialize(turn)
     @name = "AI_PLAYER_" + turn.to_s
     @turn = turn
-    @space_choices = []
   end
 
   def get_move(board)
@@ -76,6 +75,17 @@ class Computer < Player
         return 4
       else
         return 8
+      end
+    end
+
+    # opposite corners bug hard fix
+    if @turn == 1 and board.p1_board.size == 1 and board.p2_board.size == 2
+      if board.p2_board == [0, 8] or board.p2_board == [2, 6]
+        return 1
+      end
+    elsif @turn == 2 and board.p2_board.size == 1 and board.p1_board.size == 2
+      if board.p1_board == [0,8] or board.p1_board == [2,6]
+        return 1
       end
     end
 
