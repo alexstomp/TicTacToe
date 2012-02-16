@@ -54,10 +54,11 @@ class Game
 
   def player_move
     if player_up.class == Computer
-      player_up.get_move(@board)
+      move = player_up.get_move(@board)
     else
-      player_up.get_move
+      move = player_up.get_move
     end
+    move
   end
 
   def end_result

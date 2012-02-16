@@ -3,11 +3,12 @@ require 'set'
 class Board
 
   attr_accessor :board
-  attr_reader :p1_board, :p2_board, :winning_sets, :open_spaces
+  attr_reader :p1_board, :p2_board, :winning_sets, :open_spaces, :side
 
   def initialize(side)
     @p1_board = []
     @p2_board = []
+    @side = side
     if side == 3
       w1 = Set[0,4,8]
       w2 = Set[0,1,2]
@@ -33,11 +34,13 @@ class Board
   def move(space, value)
     @open_spaces.delete(space)
     @board[space] = value
-    if value == "X"
-      @p1_board << value unless @p1_board.include?(value)
-    else
-      @p2_board << value unless @p2_board.include?(value)
-    end
+  end
+
+  def un_move(space)
+    @open_spaces << space
+    @board[space] = " "
+    @p1_board.delete(space) if @p1_board.include?(space)
+    @p2_board.delete(space) if @p2_board.include?(space)
   end
 
   def game_state
@@ -62,6 +65,11 @@ class Board
       return :incomplete
     end
 
+  end
+
+  def copy
+    new = Board.new(3)
+    return new
   end
 
 end

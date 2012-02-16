@@ -50,7 +50,7 @@ class Writer
     puts "     |     |     "
   end
 
-  def winner(name)
+  def winner(name="AI")
     puts name + ' wins!'
   end
 

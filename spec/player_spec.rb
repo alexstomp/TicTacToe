@@ -60,16 +60,28 @@ describe Computer do
     player.get_move(board2).should == 4
   end
 
-  it "chooses best of 3 moves" do
+  it "makes defensive move" do
+    player = MockComputer.new(2)
+    board = Board.new(3)
+    board.board = ["X", "O", "X", "O", "O", "X", " ", "X", " "]
+    board.game_state
+    player.best_move(board).should == 8
+  end
+
+  it "chooses best of 3 moves at the end" do
     player = MockComputer.new(1)
     board = Board.new(3)
-    board.move(0, "X")
-    board.move(1, "O")
-    board.move(2, "X")
-    board.move(3, "O")
-    board.move(7, "X")
-    board.move(4, "O")
-    player.get_move(board).should == 5
+    board.board = ["X", "O", "X", "O", "O", " ", " ", "X", " "]
+    board.game_state
+    player.best_move(board).should == 5
+  end
+
+  it "chooses best of 4 moves" do
+    player = MockComputer.new(2)
+    board = Board.new(3)
+    board.board = ["X", "O", "X", "O", " ", " ", " ", "X", " "]
+    board.game_state
+    player.best_move(board).should == 4
   end
 
 end
@@ -84,11 +96,6 @@ class MockPlayer
     name = Narrator.get_player_name(@writer, @reader)
     @name = name
     @turn = turn
-    if turn == 1
-      @value = "X"
-    else
-      @value = "O"
-    end
   end
 
   def get_move
@@ -102,17 +109,11 @@ end
 
 class MockComputer < MockPlayer
 
-  attr_reader :turn, :value
+  attr_reader :turn, :space_choices
 
   def initialize(turn)
-
     @turn = turn
-
-    if turn == 1
-      @value = "X"
-    else
-      @value = "O"
-    end
+    @space_choices = []
   end
 
   def get_move(board)
@@ -123,12 +124,8 @@ class MockComputer < MockPlayer
 
     if @turn == 1
       my_board = board.p1_board.to_set
-      opponent_board = board.p2_board.to_set
-      opponent_value = "O"
     else
       my_board = board.p2_board.to_set
-      oppent_board = board.p1_board.to_set
-      opponent_value = "X"
     end
 
     #BASECASE = FINISH GAME -- LAST SPOT
@@ -148,53 +145,56 @@ class MockComputer < MockPlayer
       end
     end
 
-    # hash to store value for every open_space
-    move_values = {}
-
-    puts board.open_spaces
-
-    #STORE VALUES OF MOVES INTO HASH
-    board.open_spaces.each do |open_space|
-      move_value = generate_move_value(open_space, board)
-      move_values[open_space] = move_value
-    end
-
-    puts move_values
-
-    pick_value, pick = 0, 0
-    #PICK RIGHT MOVE FROM THE HASH
-    # ~working~
-    move_values.each do |key, value|
-      pick = key if value > pick_value
-    end
-
-    return pick
+    best_move(board)
 
   end
 
-  def generate_move_value(space, board)
-    gen_board = board
-    move_value = 0
+  def best_move(board)
+    move_values = {}
+    board.open_spaces.each do |first_space|
+      move_values[first_space] = determine_space_value(first_space, board)
+    end
+    return pick_value(move_values)
+  end
 
-    if gen_board.p1_board.size == gen_board.p2_board.size
-      value = "X" # P1
+  def determine_space_value(space, board, player=@turn, move_value=0)
+    gen_board = Board.new(board.side)
+    board.board.each_with_index {|value, index| gen_board.board[index] = value}
+    gen_board.game_state
+
+    player_value = (player == 1)? "X" : "O"
+    gen_board.move(space, player_value)
+
+    if gen_board.game_state == :incomplete
+      gen_board.open_spaces.each do |open_space|
+        next_player = (player == 1)? 2 : 1
+        move_value += determine_space_value(open_space, gen_board, next_player)
+      end
+      return move_value
     else
-      value = "O" # P2
+      return completed_move_value(gen_board)
     end
 
-    gen_board.open_spaces.each do |next_move|
-      gen_board.move(next_move,value)
-      if gen_board.game_state == :p1_win and @turn == 1
-        move_value = move_value + 1
-      elsif gen_board.game_state == :p2_win and @turn == 2
-        move_value = move_value + 1
-      elsif gen_board.game_state == :draw
-        move_value = move_value
-      else
-        move_value = move_value - 1
-      end
+  end
+
+  def completed_move_value(gen_board)
+    if gen_board.game_state == :p1_win and @turn == 1
+      move_value = 1
+    elsif gen_board.game_state == :p2_win and @turn == 2
+      move_value = 1
+    elsif gen_board.game_state == :draw
+      move_value = 0
+    else #loss
+      move_value = -1
     end
     move_value
+  end
+
+  def pick_value(hash, pick=nil)
+    hash.each do |key, value|
+      pick = key if pick == nil or value >= hash[pick]
+    end
+    return pick
   end
 
 end
