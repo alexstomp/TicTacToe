@@ -13,6 +13,30 @@ describe Narrator do
     @writer.wrote.should == true
   end
 
+  it "prompts for game type" do
+    Narrator.get_game_type(@writer, @reader)
+    @writer.write_count.should == 1
+    @writer.wrote.should == true
+  end
+
+  it "takes game type from the user" do
+    Narrator.get_game_type(@writer, @reader)
+    @reader.reader_count.should == 1
+    @reader.read.should == true
+  end
+
+  it "prompts for game order" do
+    Narrator.get_order(@writer, @reader)
+    @writer.write_count.should == 1
+    @writer.wrote.should == true
+  end
+
+  it "takes game order from the user" do
+    Narrator.get_order(@writer, @reader)
+    @reader.reader_count.should == 1
+    @reader.read.should == true
+  end
+
   it "prompts for player names" do
     Narrator.get_player_name(@writer, @reader)
     @writer.write_count.should == 1
@@ -55,6 +79,16 @@ class MockWriter
     @wrote = false
   end
 
+  def ask_game_type(output_stream=$stdout)
+    @write_count = @write_count + 1
+    @wrote = true
+  end
+
+  def ask_order(output_stream=$stdout)
+    @write_count = @write_count + 1
+    @wrote = true
+  end
+
   def ask_player_name(output_stream=$stdout)
     @write_count = @write_count + 1
     @wrote = true
@@ -85,6 +119,20 @@ class MockReader
     @reader_count = 0
     @read = false
     @name_responses = ["Alex", "John", "Beth", "Max", "Dan", "Doug", "Dave"]
+  end
+
+  def get_game_type
+    name = @name_responses[rand(@name_responses.size-0)]
+    @reader_count = @reader_count + 1
+    @read = true
+    return name
+  end
+
+  def get_order
+    name = @name_responses[rand(@name_responses.size-0)]
+    @reader_count = @reader_count + 1
+    @read = true
+    return name
   end
 
   def get_player_name
