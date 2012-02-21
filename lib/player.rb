@@ -72,13 +72,14 @@ class Computer < Player
     # First Turn -- Computer is too slow
     if my_board.size == 0
       if board.board[4] == " "
-        return 4
+        return 4 # middle
       else
-        return 8
+        return 8 # bottom right
       end
     end
 
-    # opposite corners bug hard fix
+    # opposite corners bug
+    # is this cheating? I take it as memorizing openings like chess :)
     if @turn == 1 and board.p1_board.size == 1 and board.p2_board.size == 2
       if board.p2_board == [0, 8] or board.p2_board == [2, 6]
         return 1
