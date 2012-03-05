@@ -84,6 +84,14 @@ describe Computer do
     player.best_move(board).should == 4
   end
 
+  it "blocks corners opening" do
+    player = MockComputer.new(2)
+    board = Board.new(3)
+    board.board = ["X", " ", " ", " ", "O", " ", " ", " ", "X"]
+    board.game_state
+    puts player.best_move(board)
+  end
+
 end
 
 class MockPlayer

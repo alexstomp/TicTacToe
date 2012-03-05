@@ -1,7 +1,9 @@
-require '~/Development/PROJECTS/TicTacToe/lib/player.rb'
-require '~/Development/PROJECTS/TicTacToe/lib/narrator.rb'
-require '~/Development/PROJECTS/TicTacToe/lib/game.rb'
-require '~/Development/PROJECTS/TicTacToe/lib/board.rb'
+$: << File.dirname(__FILE__)
+require 'player.rb'
+require 'computer.rb'
+require 'narrator.rb'
+require 'game.rb'
+require 'board.rb'
 
 type = Narrator.get_game_type
 
