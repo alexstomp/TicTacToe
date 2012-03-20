@@ -1,4 +1,5 @@
 require 'player.rb'
+require 'computer.rb'
 require 'narrator_spec.rb'
 
 describe Player do
