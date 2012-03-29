@@ -1,5 +1,6 @@
 require 'player.rb'
 require 'computer.rb'
+require 'board.rb'
 require 'narrator_spec.rb'
 
 describe Player do
@@ -23,74 +24,20 @@ end
 
 describe Computer do
 
-  it "fills last available spot" do
+  it "can_win returns winning move if can win" do
     player = MockComputer.new(1)
     board = Board.new(3)
-    board.move(0, "X")
-    board.move(8, "O")
-    board.move(1, "X")
-    board.move(7, "O")
-    board.move(6, "X")
-    board.move(2, "O")
-    board.move(5, "X")
-    board.move(3, "O")
-    player.get_move(board).should == 4
+    board.board = ["X", "X", " ", "O", "O", " ", " ", " ", " "]
+    board.game_state
+    player.can_win(board, player.turn).should == 2
   end
 
-  it "fills any last available spot" do
+  it "can_win false if can't win" do
     player = MockComputer.new(1)
     board = Board.new(3)
-    board.move(0, "X")
-    board.move(8, "O")
-    board.move(1, "X")
-    board.move(7, "O")
-    board.move(6, "X")
-    board.move(2, "O")
-    board.move(4, "X")
-    board.move(3, "O")
-    player.get_move(board).should == 5
-  end
-
-  it "makes finishing move" do
-    player = MockComputer.new(1)
-    board = Board.new(3)
-    board.board = ["X", "X", " ", " ", " ", " ", " ", "O", "O"]
-    player.get_move(board).should == 2
-    board2 = Board.new(3)
-    board2.board = ["X", "X", "O", " ", " ", " ", "O", "O", "X"]
-    player.get_move(board2).should == 4
-  end
-
-  it "makes defensive move" do
-    player = MockComputer.new(2)
-    board = Board.new(3)
-    board.board = ["X", "O", "X", "O", "O", "X", " ", "X", " "]
+    board.board = ["X", " ", " ", "O", " ", " ", " ", " ", " "]
     board.game_state
-    player.best_move(board).should == 8
-  end
-
-  it "chooses best of 3 moves at the end" do
-    player = MockComputer.new(1)
-    board = Board.new(3)
-    board.board = ["X", "O", "X", "O", "O", " ", " ", "X", " "]
-    board.game_state
-    player.best_move(board).should == 5
-  end
-
-  it "chooses best of 4 moves" do
-    player = MockComputer.new(2)
-    board = Board.new(3)
-    board.board = ["X", "O", "X", "O", " ", " ", " ", "X", " "]
-    board.game_state
-    player.best_move(board).should == 4
-  end
-
-  it "blocks corners opening" do
-    player = MockComputer.new(2)
-    board = Board.new(3)
-    board.board = ["X", " ", " ", " ", "O", " ", " ", " ", "X"]
-    board.game_state
-    puts player.best_move(board)
+    player.can_win(board, player.turn).should == false
   end
 
 end
@@ -122,88 +69,35 @@ class MockComputer < MockPlayer
 
   def initialize(turn)
     @turn = turn
-    @space_choices = []
   end
 
   def get_move(board)
+  end
 
-    #updates all the player-specific arrays
-    board.game_state
-    #take ^^ out for actual class
-
-    if @turn == 1
-      my_board = board.p1_board.to_set
+  def can_win(board, player)
+    if player == 1
+      player_board = board.p1_board
     else
-      my_board = board.p2_board.to_set
+      player_board = board.p2_board
     end
-
-    #BASECASE = FINISH GAME -- LAST SPOT
-    if board.open_spaces.length == 1
-      board.board.each_with_index do |value, index|
-        return index if value == " "
+    board.winning_sets.each do |winning_set|
+      combo_spaces = 0
+      combo = []
+      winning_set.to_a.each do |set_space|
+        if player_board.include?(set_space)
+          combo_spaces += 1
+          combo << set_space
+        end
+      end
+      if combo_spaces == 2
+        winning_space = winning_set.to_a
+        combo.each do |combo_space|
+          winning_space.delete(combo_space)
+        end
+        return winning_space[0]
       end
     end
-
-    #FINISHING MOVE
-    board.open_spaces.each do |open_space|
-      current_player_board = my_board.to_set
-      current_player_board.add(open_space)
-
-      board.winning_sets.each do |set|
-        return open_space if set.subset? current_player_board
-      end
-    end
-
-    best_move(board)
-
-  end
-
-  def best_move(board)
-    move_values = {}
-    board.open_spaces.each do |first_space|
-      move_values[first_space] = determine_space_value(first_space, board)
-    end
-    return pick_value(move_values)
-  end
-
-  def determine_space_value(space, board, player=@turn, move_value=0)
-    gen_board = Board.new(board.side)
-    board.board.each_with_index {|value, index| gen_board.board[index] = value}
-    gen_board.game_state
-
-    player_value = (player == 1)? "X" : "O"
-    gen_board.move(space, player_value)
-
-    if gen_board.game_state == :incomplete
-      gen_board.open_spaces.each do |open_space|
-        next_player = (player == 1)? 2 : 1
-        move_value += determine_space_value(open_space, gen_board, next_player)
-      end
-      return move_value
-    else
-      return completed_move_value(gen_board)
-    end
-
-  end
-
-  def completed_move_value(gen_board)
-    if gen_board.game_state == :p1_win and @turn == 1
-      move_value = 1
-    elsif gen_board.game_state == :p2_win and @turn == 2
-      move_value = 1
-    elsif gen_board.game_state == :draw
-      move_value = 0
-    else #loss
-      move_value = -1
-    end
-    move_value
-  end
-
-  def pick_value(hash, pick=nil)
-    hash.each do |key, value|
-      pick = key if pick == nil or value >= hash[pick]
-    end
-    return pick
+    return false
   end
 
 end

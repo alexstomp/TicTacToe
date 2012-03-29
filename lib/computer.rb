@@ -9,104 +9,51 @@ class Computer < Player
     @turn = turn
   end
 
-  def get_move(board)
-
-    if @turn == 1
-      my_board = board.p1_board.to_set
-      opponent_board = board.p2_board.to_set
-    else
-      my_board = board.p2_board.to_set
-      opponent_board = board.p1_board.to_set
+ def get_move(board)
+    space_values = {}
+    board.open_spaces.each do |origin_space|
+      space_values[origin_space] = branch(board, origin_space).to_f
     end
-
-    # Last Move
-    if board.open_spaces.length == 1
-      board.board.each_with_index do |value, index|
-        return index if value == " "
-      end
-    end
-
-    # Winning Move
-    board.open_spaces.each do |open_space|
-      current_player_board = my_board.to_set
-      current_player_board.add(open_space)
-
-      board.winning_sets.each do |set|
-        return open_space if set.subset? current_player_board
-      end
-    end
-
-    # Blocking Move
-    board.open_spaces.each do |open_space|
-      current_opponent_board = opponent_board.to_set
-      current_opponent_board.add(open_space)
-
-      board.winning_sets.each do |set|
-        return open_space if set.subset? current_opponent_board
-      end
-    end
-
-    # First Turn -- Computer is too slow
-    if my_board.size == 0
-      if board.board[4] == " "
-        return 4 # middle
-      else
-        return 8 # bottom right
-      end
-    end
-
-    # Everything Else!
-    best_move(board)
-
+    puts space_values
+    pick_value(space_values)
   end
 
-  def best_move(board)
-    move_values = {}
-    board.open_spaces.each do |first_space|
-      move_values[first_space] = determine_space_value(first_space, board)
-    end
-    return pick_value(move_values)
-  end
-
-  def determine_space_value(space, board, player=@turn, move_value=0)
+  def branch(board, space, depth=1, value=0)
     gen_board = Board.new(board.side)
     board.board.each_with_index {|value, index| gen_board.board[index] = value}
     gen_board.game_state
 
-    player_value = (player == 1)? "X" : "O"
+    player_value = (board.p1_board.size > board.p2_board.size) ? "O" : "X"
+
     gen_board.move(space, player_value)
 
     if gen_board.game_state == :incomplete
-      gen_board.open_spaces.each do |open_space|
-        next_player = (player == 1)? 2 : 1
-        # passing move_value doesn't change action
-        move_value += determine_space_value(open_space, gen_board, next_player)
+      gen_board.open_spaces.each do |next_space|
+        value = branch(gen_board, next_space, depth+1, value) if depth <= 3
       end
-      return move_value
     else
-      return completed_move_value(gen_board)
+      value += assign_value(gen_board, depth)
     end
-
+    value
   end
 
-  def completed_move_value(gen_board)
-    if gen_board.game_state == :p1_win and @turn == 1
-      move_value = 1
-    elsif gen_board.game_state == :p2_win and @turn == 2
-      move_value = 1
-    elsif gen_board.game_state == :draw
-      move_value = 0
-    else #loss
-      move_value = -10
+  def assign_value(finished_board, depth)
+    if finished_board.game_state == :p1_win and @turn == 1
+      1.fdiv(depth)
+    elsif finished_board.game_state == :p2_win and @turn == 2
+      1.fdiv(depth)
+    elsif finished_board.game_state == :draw
+      0
+    else
+      -1.fdiv(depth)
     end
-    move_value
   end
 
   def pick_value(hash, pick=nil)
     hash.each do |key, value|
       pick = key if pick == nil or value >= hash[pick]
     end
-    return pick
+    pick
   end
 
 end

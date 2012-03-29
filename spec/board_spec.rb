@@ -65,20 +65,5 @@ describe Board do
     board.game_state.should == :incomplete
   end
 
-  it "removes a move" do
-    board = Board.new(3)
-    board.move(0, "X")
-    board.move(5, "O")
-    board.board.should == ["X"," "," "," "," ","O"," "," "," "]
-    board.open_spaces.include?(5).should == false
-    board.game_state
-    board.p2_board.include?(5).should == true
-    board.un_move(5)
-    board.board.should == ["X"," "," "," "," "," "," "," "," "]
-    board.open_spaces.include?(5).should == true
-    board.game_state
-    board.p2_board.include?(5).should == false
-  end
-
 end
 
