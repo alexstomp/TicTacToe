@@ -12,15 +12,15 @@ class Computer < Player
   def get_move(board)
     space_values = {}
 
-    finish = finishing_move(board, @turn)
-    if finish == false
+    win = finishing_move(board, @turn)
+    if win == false
       board.open_spaces.each do |open_space|
         move_value = get_branch(board, open_space)
         space_values[open_space] = (move_value*100).round / 100.0
       end
       pick_value(space_values)
     else
-      finish
+      win
     end
   end
 
@@ -28,6 +28,7 @@ class Computer < Player
 
     player = @turn
     opponent = player == 1 ? 2 : 1
+    current_player = depth%2 == 0 ? opponent : player
 
     gen_board = Board.new(3)
     board.board.each_with_index {|value, index| gen_board.board[index] = value}
@@ -44,13 +45,13 @@ class Computer < Player
     win = finishing_move(gen_board, player)
     loss = finishing_move(gen_board, opponent)
 
-    if win != false
-      value += Computer.assign_value(depth)
-    elsif loss != false
-      value += Computer.assign_value(depth, false)
+    depth += 1
+    if win != false and current_player == opponent
+      value += 1.fdiv(depth*depth)
+    elsif loss != false and current_player == player
+      value -= 1.fdiv(depth*depth)
     elsif gen_board.game_state == :incomplete
       gen_board.open_spaces.each do |next_space|
-        depth += 1
         value += get_branch(gen_board, next_space, depth)
       end
     end
@@ -73,13 +74,13 @@ class Computer < Player
           combo_spaces += 1
           combo << set_space
         end
-      end
-      if combo_spaces == 2
-        winning_space = winning_set.to_a
-        combo.each do |combo_space|
-          winning_space.delete(combo_space)
+        if combo_spaces == 2
+          winning_space = winning_set.to_a
+            combo.each do |combo_space|
+              winning_space.delete(combo_space)
+            end
+          return winning_space[0] if board.open_spaces.include?(winning_space[0])
         end
-        return winning_space[0] if board.open_spaces.include?(winning_space[0])
       end
     end
     return false

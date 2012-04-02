@@ -82,7 +82,6 @@ describe Computer do
     @player.get_move(@board).should == 4
   end
 
-
   it "makes a blocking move" do
     @board.board = ["X", " ", " ", "O", "O", " ", "X", " ", " "]
     @board.game_state
@@ -90,20 +89,17 @@ describe Computer do
   end
 
   it "makes a blocking move" do
-    @player = MockComputer.new(2)
-    @board.board = ["X", " ", " ", " ", " ", " ", "X", " ", "O"]
+    @board.board = ["O", " ", " ", " ", " ", " ", "O", " ", "X"]
     @board.game_state
     @player.get_move(@board).should == 3
   end
 
   it "assigns value correctly with depth for loss" do
-    pending
-    MockComputer.assign_value(4, false).should == -5.fdiv(4*4)
+    MockComputer.assign_value(4, false).should == -1.fdiv(4*4)
   end
 
   it "assigns value correctly with depth for win" do
-    pending
-    MockComputer.assign_value(5).should == 2.fdiv(5*5)
+    MockComputer.assign_value(5).should == 1.fdiv(5*5)
   end
 
 end
@@ -140,16 +136,15 @@ class MockComputer < MockPlayer
   def get_move(board)
     space_values = {}
 
-    finish = finishing_move(board, @turn)
-    if finish == false
+    win = finishing_move(board, @turn)
+    if win == false
       board.open_spaces.each do |open_space|
         move_value = get_branch(board, open_space)
         space_values[open_space] = (move_value*100).round / 100.0
       end
-      puts "\n" + space_values.to_s
       pick_value(space_values)
     else
-      finish
+      return win
     end
   end
 
@@ -157,6 +152,7 @@ class MockComputer < MockPlayer
 
     player = @turn
     opponent = player == 1 ? 2 : 1
+    current_player = depth%2 == 0 ? opponent : player
 
     gen_board = Board.new(3)
     board.board.each_with_index {|value, index| gen_board.board[index] = value}
@@ -173,26 +169,22 @@ class MockComputer < MockPlayer
     win = finishing_move(gen_board, player)
     loss = finishing_move(gen_board, opponent)
 
-    if win != false
-      value += MockComputer.assign_value(depth)
-    elsif loss != false
-      value += MockComputer.assign_value(depth, false)
+    depth += 1
+    if win != false and current_player == opponent
+      value += self.class.assign_value(depth)
+    elsif loss != false and current_player == player
+      value += self.class.assign_value(depth, false)
     elsif gen_board.game_state == :incomplete
       gen_board.open_spaces.each do |next_space|
-        depth += 1
         value += get_branch(gen_board, next_space, depth)
       end
     end
-    value
+    return value
   end
 
   def finishing_move(board, player)
 
-    if player == 1
-      player_board = board.p1_board
-    else
-      player_board = board.p2_board
-    end
+    player_board = player == 1 ? board.p1_board : board.p2_board
 
     board.winning_sets.each do |winning_set|
       combo_spaces = 0
@@ -202,25 +194,20 @@ class MockComputer < MockPlayer
           combo_spaces += 1
           combo << set_space
         end
-      end
-      if combo_spaces == 2
-        winning_space = winning_set.to_a
-        combo.each do |combo_space|
-          winning_space.delete(combo_space)
+        if combo_spaces == 2
+          winning_space = winning_set.to_a
+            combo.each do |combo_space|
+              winning_space.delete(combo_space)
+            end
+          return winning_space[0] if board.open_spaces.include?(winning_space[0])
         end
-        return winning_space[0] if board.open_spaces.include?(winning_space[0])
       end
     end
     return false
   end
 
   def self.assign_value(depth, win=true)
-    if win
-      val = 1.fdiv(depth*depth)
-    else
-      val = -1.fdiv(depth*depth)
-    end
-    return val
+    val = win == true ? 1.fdiv(depth*depth) : -1.fdiv(depth*depth)
   end
 
   def pick_value(hash, pick=nil)
@@ -229,5 +216,4 @@ class MockComputer < MockPlayer
     end
     pick
   end
-
 end
