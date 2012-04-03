@@ -18,6 +18,7 @@ class Computer < Player
         move_value = get_branch(board, open_space)
         space_values[open_space] = (move_value*100).round / 100.0
       end
+      puts space_values.to_s
       pick_value(space_values)
     else
       return win
@@ -50,7 +51,7 @@ class Computer < Player
       return self.class.assign_value(depth)
     elsif loss != false and current_player == player
       return self.class.assign_value(depth, false)
-    elsif gen_board.game_state == :incomplete and gen_board.open_spaces.size > depth
+    elsif gen_board.game_state == :incomplete
       gen_board.open_spaces.each do |next_space|
         value += get_branch(gen_board, next_space, depth)
       end
