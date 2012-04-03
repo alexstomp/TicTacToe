@@ -20,7 +20,7 @@ class Computer < Player
       end
       pick_value(space_values)
     else
-      win
+      return win
     end
   end
 
@@ -47,24 +47,20 @@ class Computer < Player
 
     depth += 1
     if win != false and current_player == opponent
-      value += 1.fdiv(depth*depth)
+      return self.class.assign_value(depth)
     elsif loss != false and current_player == player
-      value -= 1.fdiv(depth*depth)
-    elsif gen_board.game_state == :incomplete
+      return self.class.assign_value(depth, false)
+    elsif gen_board.game_state == :incomplete and gen_board.open_spaces.size > depth
       gen_board.open_spaces.each do |next_space|
         value += get_branch(gen_board, next_space, depth)
       end
     end
-    value
+    return value
   end
 
   def finishing_move(board, player)
 
-    if player == 1
-      player_board = board.p1_board
-    else
-      player_board = board.p2_board
-    end
+    player_board = player == 1 ? board.p1_board : board.p2_board
 
     board.winning_sets.each do |winning_set|
       combo_spaces = 0
@@ -87,19 +83,13 @@ class Computer < Player
   end
 
   def self.assign_value(depth, win=true)
-    if win
-      val = 1.fdiv(depth*depth)
-    else
-      val = -1.fdiv(depth*depth)
-    end
-    return val
+    val = win == true ? 1.fdiv(depth*depth) : -1.fdiv(depth*depth)
   end
 
   def pick_value(hash, pick=nil)
     hash.each do |key, value|
-      pick = key if pick == nil or value >= hash[pick]
+      pick = key if pick == nil or value > hash[pick]
     end
     pick
   end
-
 end

@@ -171,10 +171,10 @@ class MockComputer < MockPlayer
 
     depth += 1
     if win != false and current_player == opponent
-      value += self.class.assign_value(depth)
+      return self.class.assign_value(depth)
     elsif loss != false and current_player == player
-      value += self.class.assign_value(depth, false)
-    elsif gen_board.game_state == :incomplete
+      return self.class.assign_value(depth, false)
+    elsif gen_board.game_state == :incomplete and gen_board.open_spaces.size > depth
       gen_board.open_spaces.each do |next_space|
         value += get_branch(gen_board, next_space, depth)
       end
@@ -212,7 +212,7 @@ class MockComputer < MockPlayer
 
   def pick_value(hash, pick=nil)
     hash.each do |key, value|
-      pick = key if pick == nil or value >= hash[pick]
+      pick = key if pick == nil or value > hash[pick]
     end
     pick
   end
