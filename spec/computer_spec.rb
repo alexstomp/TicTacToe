@@ -1,7 +1,58 @@
-require 'player'
-require 'player_helper'
+require 'player.rb'
+require 'computer.rb'
+require 'player_helper.rb'
+require 'board.rb'
+require 'narrator_spec.rb'
+require 'player_spec.rb'
+require 'player_helper_spec.rb'
 
-class Computer < Player
+describe Computer do
+
+  before(:each) do
+    @player = MockComputer.new(2)
+    @board = Board.new(3)
+  end
+
+  it "picks highest valued key in hash" do
+    hash = {0 => 1, 1 => 2, 2 => 3}
+    @player.pick_value(hash).should == 2
+  end
+
+  it "makes a winning move" do
+    @board.board = ["X", "X", " ", "O", "O", " ", "X", " ", " "]
+    @board.game_state
+    @player.get_move(@board).should == 5
+  end
+
+  it "works 1" do
+    @board.board = ["X", " ", " ", " ", " ", " ", " ", " ", " "]
+    @board.game_state
+    @player.get_move(@board).should == 4
+  end
+
+  it "makes a blocking move" do
+    @board.board = ["X", " ", " ", "O", "O", " ", "X", " ", " "]
+    @board.game_state
+    @player.get_move(@board).should == 5
+  end
+
+  it "makes a blocking move" do
+    @board.board = ["O", " ", " ", " ", " ", " ", "O", " ", "X"]
+    @board.game_state
+    @player.get_move(@board).should == 3
+  end
+
+  it "assigns value correctly with depth for loss" do
+    MockComputer.assign_value(4, false).should == -1.fdiv(4*4)
+  end
+
+  it "assigns value correctly with depth for win" do
+    MockComputer.assign_value(5).should == 1.fdiv(5*5)
+  end
+
+end
+
+class MockComputer < MockPlayer
 
   attr_reader :name, :turn, :opponent, :player_value, :opponent_value
 
@@ -15,12 +66,7 @@ class Computer < Player
 
   def get_move(board)
     space_values = {}
-    if board.open_spaces.length == 9
-      corners = [0,2,6,8]
-      return corners[Random.rand(0..3)]
-    elsif board.open_spaces.length == 8
-      return 4 if board.valid_move?(4)
-    elsif PlayerHelper.finishable?(board, @turn) == false
+    if PlayerHelper.finishable?(board, @turn) == false
       board.open_spaces.each do |open_space|
         move_value = get_branch(board, open_space)
         space_values[open_space] = (move_value*100).round / 100.0
