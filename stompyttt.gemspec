@@ -6,4 +6,6 @@ Gem::Specification.new do |s|
   s.description = "A wonderful game!"
   s.authors     = ["Alex Stomp"]
   s.email       = 'stompy1208@gmail.com'
+  s.files        = Dir["{lib,spec}/**/*"]
+  s.require_path = "lib"
 end
