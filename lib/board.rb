@@ -5,6 +5,10 @@ class Board
   attr_accessor :board
   attr_reader :p1_board, :p2_board, :winning_sets, :open_spaces, :side
 
+  def self.test
+    puts "foo"
+  end
+
   def initialize(side)
     @p1_board = []
     @p2_board = []
